@@ -3,7 +3,7 @@
 ## Usage by CLI ##
 
 ```
-pptxreduce [-w] [file ...]
+pptxreduce [-w] file ...
 
 -w  Overwrite the original pptx file.
     If the option isn’t chosen, the original file is renamed to *.pptx~

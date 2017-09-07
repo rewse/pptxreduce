@@ -89,7 +89,7 @@ reduce_pptx() {
 
 show_usage() {
   cat <<! 1>&2
-Usage: pptxreduce [-w] [file ...]
+Usage: pptxreduce [-w] file ...
 
         -w  Overwrite the original pptx file.
             If the option isn’t chosen, the original file is renamed to *.pptx~

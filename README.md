@@ -1,6 +1,6 @@
 # PowerPoint Presentation File Size Reducer #
 
-## Usage ##
+## Usage by CLI ##
 
 ```
 pptxreduce [-w] [file ...]
@@ -8,6 +8,11 @@ pptxreduce [-w] [file ...]
 -w  Overwrite the original pptx file.
     If the option isn’t chosen, the original file is renamed to *.pptx~
 ```
+
+## Usage by GUI ##
+
+1. Run `sudo cp pptxreduce /usr/local/bin`
+2. Drag & drop \*.pptx to the Automator application, pptxreduce.app
 
 ## Background ##
 

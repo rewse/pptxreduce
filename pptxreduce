@@ -1,0 +1,106 @@
+#!/bin/bash
+
+trap 'my_exit 1' 1 2 3 15
+
+readonly WORKDIR_PREFIX=/tmp/pptxreduce-
+
+# {{{ my_exit()
+
+my_exit() {
+  rm -rf $WORKDIR_PREFIX*
+  exit $1
+}
+
+# }}}
+# {{{ log()
+
+log() {
+  echo "$(date +'%T') <$1> $2"
+}
+
+# }}}
+# {{{ get_opts()
+
+get_opts() {
+  overwrite=FALSE
+
+  while getopts w OPT; do
+    case $OPT in
+      w) overwrite=TRUE;;
+      \?) show_usage;;
+    esac
+  done
+
+  shift $((OPTIND - 1))
+}
+
+# }}}
+# {{{ reduce_pptx()
+
+reduce_pptx() {
+  for file in "$@"; do
+    local before_size=$(du -k "$file" | awk '{print $1}')
+    local workdir=$WORKDIR_PREFIX$(uuidgen)
+
+    if [ "$(echo $(file "$file") | grep 'Microsoft PowerPoint 2007\+')" == "" ]; then
+      log ERROR "$file is not a PowerPoint 2007+ file" 1>&2
+      continue
+    fi
+
+    if [ $overwrite == FALSE ]; then
+      if [ -f "$file"~ ]; then
+        log ERROR "$file~ already exists. Skipped"
+        continue
+      fi
+
+      cp -a "$file"{,~}
+    fi
+
+    local retval=$?
+
+    if [ $retval != 0 ]; then
+      log ERROR "$file can’t be copied for backup" 1>&2
+      continue
+    fi
+
+    local abs_file=$(cd $(dirname "$file") && pwd)/$(basename "$file")
+
+    unzip -q -d $workdir "$file" &&
+    cd $workdir &&
+    zip -qr "$abs_file" * &&
+    cd - 1>/dev/null
+
+    local retval=$?
+
+    rm -rf $workdir
+
+    if [ $retval != 0 ]; then
+      log ERROR "$file can’t be reduced" 1>&2
+      continue
+    fi
+
+    local after_size=$(du -k "$file" | awk '{print $1}')
+    local reduced_ratio=$(echo "scale=2; (1 - ($after_size / $before_size)) * 100" | bc)
+    log NOTICE "$file was $(printf '%.0f' $reduced_ratio)% reduced. Before: $(printf "%'d" $before_size)KB / After: $(printf "%'d" $after_size)KB"
+  done
+}
+# }}}
+# {{{ show_usage()
+
+show_usage() {
+  cat <<! 1>&2
+Usage: pptxreduce [-w] [file ...]
+
+        -w  Overwrite the original pptx file.
+            If the option isn’t chosen, the original file is renamed to *.pptx~
+!
+
+  my_exit 1
+}
+
+# }}}
+# {{{ Main
+
+get_opts "$@"
+reduce_pptx "$@"
+my_exit 0

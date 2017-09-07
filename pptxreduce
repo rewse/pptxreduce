@@ -2,12 +2,12 @@
 
 trap 'my_exit 1' 1 2 3 15
 
-readonly WORKDIR_PREFIX=/tmp/pptxreduce-
+readonly WORKDIR_PREFIX=/tmp/pptxreduce
 
 # {{{ my_exit()
 
 my_exit() {
-  rm -rf $WORKDIR_PREFIX*
+  rm -rf $WORKDIR_PREFIX-*
   exit $1
 }
 
@@ -40,7 +40,7 @@ get_opts() {
 reduce_pptx() {
   for file in "$@"; do
     local before_size=$(du -k "$file" | awk '{print $1}')
-    local workdir=$WORKDIR_PREFIX$(uuidgen)
+    local workdir=$WORKDIR_PREFIX-$(uuidgen)
 
     if [ "$(echo $(file "$file") | grep 'Microsoft PowerPoint 2007\+')" == "" ]; then
       log ERROR "$file is not a PowerPoint 2007+ file" 1>&2
